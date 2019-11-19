@@ -5,7 +5,26 @@
 
 StateMachine sm;
 Communication com;
+
 float dt=0.1;
+
+class Pince
+{
+private:
+  StateMachine* stateMachine;
+public:
+  Pince(StateMachine* stateMachine) {this->stateMachine = stateMachine;}
+  Pince(){}
+
+  void grab()
+  {
+    delay(2000);
+    if ((millis()/100)%2==0) //(random du feignant)
+      stateMachine->gripConfirmed();
+  }
+};
+
+Pince pince;
 
 class WaitForTirette : public State
 {
@@ -33,11 +52,14 @@ public:
 
 class PinceGrab : public State
 {
+private:
+  Pince* pince;
+
 public:
-  PinceGrab(float timeout) : State(timeout){}
+  PinceGrab(float timeout, Pince* pince) : State(timeout){this->pince = pince;}
 
   void onStart() override{
-    //pince.grab()
+    pince->grab();
   }
 
   void onGripConfirmed() override{
@@ -57,11 +79,12 @@ void setup() {
   Logger::setup(&Serial,&Serial,&Serial,false,true,true);
   com = Communication(&Serial);
   sm = StateMachine(&com);
+  pince = Pince(&sm);
   
   State* waitTirette = new WaitForTirette(-1,PB4);
   sm.addState(waitTirette);
   
-  State* pinceGrab = new PinceGrab(10);
+  State* pinceGrab = new PinceGrab(10,&pince);
   sm.addState(pinceGrab);
   waitTirette->setStateStd(pinceGrab);
 

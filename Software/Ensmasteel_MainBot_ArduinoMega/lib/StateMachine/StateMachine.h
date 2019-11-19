@@ -12,10 +12,15 @@ class StateMachine;
 /*
 * Un state est un des etats de la state machine
 * Chaque state ne connait que 3 autres state. 
-* Le state suivant standard
-* Le state suivant en cas d'erreur
-* Et le state suivant auxiliaire.
-* (Ce ne sont que des appellations)
+*     -Le state suivant standard
+*     -Le state suivant en cas d'erreur
+*     -Et le state suivant auxiliaire.
+*     (Ce ne sont que des appellations)
+*
+* /!\ Ne pas oublier d'appeller les methodes setStateStd/Err/Aux après définitions des states en question
+*
+* Par défaut, les différentes méthodes ne font rien.
+* C'est a l'utilisateur de les override si nécessaire
 */
 class State
 {
@@ -63,6 +68,7 @@ friend class StateMachine;
 
 /*
 * Une stateMachine est un ensemble d'états
+* On passe les différents "signaux" via la state machine qui va les transférer a l'état en cours.
 */
 class StateMachine{
 public:
@@ -87,7 +93,7 @@ private:
 };
 
 
-//STATE GENERIQUES
+//STATE GENERIQUES (State utiles a plusieur reprises)
 
 class SimpleDelay : public State
 {
