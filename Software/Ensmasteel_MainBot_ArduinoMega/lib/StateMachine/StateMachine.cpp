@@ -1,100 +1,93 @@
 #include "StateMachine.h"
 #include "Logger.h"
 #include "Communication.h"
+#include <Arduino.h>
 
+uint8_t State::numInstance = 0;
 
-void State::addTransitionSignal(Signal s, StateName target) {
-    if (nbTransitions==__NBSTATE__){
-            Logger::infoln("ERROR : too much transition");
-    }
-    else
-    {
-        transitions[nbTransitions].isMessage = false;
-        transitions[nbTransitions].s = s;
-        transitions[nbTransitions].target = target;
-        nbTransitions++;
-    }
-}
-
-void State::addTransitionMessage(MessageID mess, StateName target) {
-    if (nbTransitions==__NBSTATE__){
-            Logger::infoln("ERROR : too much transition");
-    }
-    else
-    {
-        transitions[nbTransitions].isMessage = true;
-        transitions[nbTransitions].mess = mess;
-        transitions[nbTransitions].target = target;
-        nbTransitions++;
-    }
-}
-
-State::State(StateName name, bool isStartState) {
-    nbTransitions = 0;
-    this->running = isStartState;
-    this->name = name;
-    this->started = false;
-    this->transitionRequested = false;
-}
-
-void State::requestTransition(StateName target)
+State::State(float timeout)
 {
-    transitionRequested = true;
-    this->target = target;
+    this->id = numInstance;
+    this->started = false;
+    this->timeout = timeout;   
+    this->stateMachine = nullptr;
+    this->stateStd = nullptr;
+    this->stateErr = nullptr;
+    this->stateAux = nullptr;
+    numInstance++;
+}
+
+void State::setStateStd(State* state){this->stateStd = state;}
+void State::setStateErr(State* state){this->stateErr = state;}
+void State::setStateAux(State* state){this->stateAux = state;}
+
+State* State::getStateStd(){
+    if (stateStd == nullptr) 
+        Logger::infoln("Try to call a null state") ;
+    else
+        Logger::debugln("Calling standard follower");
+    return stateStd;
+}
+
+State* State::getStateErr(){
+    if (stateErr == nullptr) 
+        Logger::infoln("Try to call a null state") ;
+    else
+        Logger::debugln("Calling err follower");
+    return stateErr;
+}
+
+State* State::getStateAux(){
+    if (stateAux == nullptr) 
+        Logger::infoln("Try to call a null state") ;
+    else
+        Logger::debugln("Calling aux follower");
+    return stateAux;
+}
+
+void State::start(){
+    Logger::debugln("State " + String(id) + " started");
+    started = true;
+    topStart = millis()/1e3;
+    onStart();
+}
+
+void State::stop(){
+    Logger::debugln("State " + String(id) + " stopped");
+    started = false;
+    onLeave();
+}
+
+void StateMachine::changeCurrentState(State* newState)
+{
+    currentState->stop();
+    currentState = newState;
+    currentState->start();
+}
+
+void StateMachine::update(float dt)
+{
+    if (currentState->timeout>0 && (millis()/1e3 - currentState->topStart) > currentState->timeout)
+        currentState->onTimeout();
+
+    currentState->onRun(dt);
 }
 
 StateMachine::StateMachine(Communication* com)
 {
     this->com = com;
+    this->nbStates = 0;
 }
 
-State* StateMachine::getStateByName(StateName name) {
-    return states[(int)name];
+void StateMachine::addState(State* state)
+{
+    state->stateMachine = this;
+    this->states[nbStates] = state;
+    nbStates++;
 }
 
-void StateMachine::setState(State* state) {
-    states[int(state->name)] = state;
-}
-
-void StateMachine::update(float dt) {
-    Signal s = Signal::_noSignal_;
-    if (SignalManager::inWaiting()>0)
-        s = SignalManager::peekOldestSignal();
-
-    for (int i=0;i<__NBSTATE__;i++) //Pour chaque etat
-    {
-        if (states[i]->running) //Si il est actif
-        {
-            if (!states[i]->started) //Si il n'a pas encore été intialisé
-            {
-                states[i]->onStart(); //On fait l'action de départ
-                states[i]->started=true;
-            }
-
-            states[i]->onRun(dt); //On fait les actions classiques
-
-            for (int t = 0; t<states[i]->nbTransitions;t++) //Pour chaque transition
-            {
-                if ( (com->inWaitingRx()>0 && states[i]->transitions[t].isMessage && states[i]->transitions[t].mess == extractID(com->peekOldestMessage())) //Si on a le bon message
-                ||   (!states[i]->transitions[t].isMessage && states[i]->transitions[t].s == s)) // Si on a le bon signal
-                {
-                    getStateByName(states[i]->transitions[t].target)->running = true; //On active la target
-                    states[i]->onLeave();
-                    states[i]->started = false;
-                    states[i]->transitionRequested = false;
-                    states[i]->running = false; //On endort cete action
-                }
-            }
-
-            if (states[i]->transitionRequested)
-            {
-                getStateByName(states[i]->target)->running = true; //On active la target
-                states[i]->onLeave();
-                states[i]->started = false;
-                states[i]->transitionRequested = false;
-                states[i]->running = false; //On endort cete action
-            }
-            
-        }
-    }
+void StateMachine::setStartState(State* state)
+{
+    currentState = state;
+    currentState->start();
 }
