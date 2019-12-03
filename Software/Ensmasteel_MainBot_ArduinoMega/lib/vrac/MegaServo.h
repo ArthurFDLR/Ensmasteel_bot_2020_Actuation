@@ -1,6 +1,7 @@
 #ifndef MEGASERVO_INCLUDED
 #define MEGASERVO_INCLUDED
 #include "Servo.h"
+
 enum ServoPosition {Retracted,HalfRetracted,HalfExtended,Extended};
 class MegaServo
 {

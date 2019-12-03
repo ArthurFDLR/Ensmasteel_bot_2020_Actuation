@@ -3,11 +3,6 @@
 
 Color::Color()
 {
-    //ctor
-}
-
-Color::Color(bool dummy)
-{
     //sensor= Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_1X);
     //sensor.begin();
     tLastUpdate=millis()/1000.0;

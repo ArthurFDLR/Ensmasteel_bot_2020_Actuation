@@ -6,7 +6,6 @@
 class Color
 {
     public:
-        Color(bool dummy);
         Color();
         //Adafruit_TCS34725 sensor;
         float red,green,blue;

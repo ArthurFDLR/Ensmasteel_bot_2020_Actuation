@@ -27,7 +27,6 @@ public:
     float distanceWith(Vector &other);
     void print(const String& prefix="",bool info=false);
     void toTelemetry(const String& prefix="");
-    Vector rotate(float theta);
     Vector(float x = 0.0, float y = 0.0);
 };
 

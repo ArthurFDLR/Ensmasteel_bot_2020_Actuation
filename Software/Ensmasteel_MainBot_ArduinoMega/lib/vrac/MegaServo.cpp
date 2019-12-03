@@ -1,5 +1,5 @@
 #include "MegaServo.h"
-#include "Servo.h"
+
 MegaServo::MegaServo(uint8_t pin,uint16_t microsRetracted,uint16_t microsHalfRetracted,uint16_t microsHalfExtended,uint16_t microsExtended)
 {
   this->pin=pin;

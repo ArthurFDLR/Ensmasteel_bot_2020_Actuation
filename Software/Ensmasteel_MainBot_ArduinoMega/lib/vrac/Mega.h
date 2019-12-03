@@ -1,8 +1,6 @@
 #ifndef MEGA_INCLUDED
 #define MEGA_INCLUDED
-//#include "Barillet.h"
 #include "Pompe.h"
-//#include "Elevator.h"
 #include "MegaServo.h"
 #include "1_CONSTANTS.h"
 #include "Pinces.h"
