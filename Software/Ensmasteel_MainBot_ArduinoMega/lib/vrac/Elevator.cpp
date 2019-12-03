@@ -9,7 +9,7 @@ Elevator::Elevator(uint8_t pinContacteur,uint8_t pin1Codeuse,uint8_t pin2Codeuse
   contacteurElevator=new Contacteur(pinContacteur);
   codeuseElevator=new Codeuse(false,pin1Codeuse,pin2Codeuse,tickToPos);
   aim=0;
-  pidElevator=new PID(false, 50000.0, 0, 1000.0, 50, 0);
+  pidElevator=new PID(false,30);
 }
 
 Elevator::Elevator()
@@ -19,14 +19,16 @@ Elevator::Elevator()
 
 bool Elevator::goodenough()
 {
-    return abs(codeuseElevator->pos-aim)<0.005  && abs(codeuseElevator->dPos)<0.005;
+    return abs(pos-aim)<0.005  && abs(dPos)<0.005;
 }
 
 
 void Elevator::actuate(float dt)
 {
     codeuseElevator->actuate(dt);
-    moteurElevator->order=pidElevator->compute(dt,aim,codeuseElevator->pos,codeuseElevator->dPos);
+    dPos = codeuseElevator->v;
+    pos += codeuseElevator->deltaAvance;
+    moteurElevator->order=pidElevator->compute(aim,0.0,pos,dPos,dt);
     moteurElevator->actuate();
     //Serial.print("posElev ");Serial.println(codeuseElevator->pos);
 }
@@ -50,10 +52,12 @@ bool Elevator::init()
   moteurElevator->order=0;// On arrete l'elevateur
   moteurElevator->actuate();
 
-  if (t-tIni1>=20)return false;
+  if (t-tIni1>=20)
+    return false;
   else
   {
-    codeuseElevator->reset();
+    pos = 0;
+    dPos = 0;
     aim=AIMAboveBarel;
     //aim=AIMDistribLevel;
     return true;

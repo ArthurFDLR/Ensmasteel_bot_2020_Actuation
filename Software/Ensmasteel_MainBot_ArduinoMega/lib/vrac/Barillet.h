@@ -45,6 +45,7 @@ public:
     void goToDelta(float angle);
     bool goodenough();
     bool coteviolet;
+    float pos,dPos;
     private:
     float target,tStartGoto,tFinGoto,tInversion,aim,dAim;
 };

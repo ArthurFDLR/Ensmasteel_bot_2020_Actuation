@@ -10,7 +10,7 @@
 #include "Contacteur.h"
 #include "Elevator.h"
 #include "Barillet.h"
-#include "Comm.h"
+#include "Communication.h"
 enum actionCouranteE {Idle,Chaos,Distrib,RecupGoldonium,DeposeGoldonium,PoussePaletBleu,DeposePaletSolA,VideDistributeur,DeposePaletAccelerateur,DeposeBleuBalance};
 enum etapeChaosE {PrepChaos,DescentSouffletSol,RemontePalet,DeposeOneFloor,DeposeRemonte,TourneBarillet};
 enum etapeRecupGoldoniumE {Safety,Recup,ElevateurniveauGoldo};
@@ -30,7 +30,7 @@ public:
     Pinces pinces;
     Sharp sharpAVG,sharpAVD,sharpARG,sharpARD,sharpPaletG,sharpPaletD,AmperemetrePompeGauche,AmperemetrePompeDroit;
     Contacteur tirette;
-    Comm comm;
+    Communication communication;
 
     actionCouranteE actionCourante;
 

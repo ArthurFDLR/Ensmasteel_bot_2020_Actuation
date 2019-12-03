@@ -21,7 +21,7 @@ Sharp::Sharp(uint8_t pin, float seuil_alerte, float seuil_proximity)
     this->seuil_alerte=seuil_alerte;
     this->seuil_proximity=seuil_proximity;
     this->lastState=SharpState::Normal;
-    this->filtre=Filtre(0,30,typeFiltreE::LOWPASS2);
+    this->filtre=Filtre(0,100);
     this->rawVal=0;
 }
 

@@ -23,20 +23,16 @@ void Mega::actuate()
   millisActu = m;
   if (dt > 0.5)
     dt = 0.005;
-  this->sharpARD.actuate(dt);
-  this->sharpARG.actuate(dt);
-  this->sharpAVD.actuate(dt);
-  this->sharpAVG.actuate(dt);
+  
   this->sharpPaletD.actuate(dt);
   this->sharpPaletG.actuate(dt);
-  this->AmperemetrePompeDroit.actuate(dt);
-  this->AmperemetrePompeGauche.actuate(dt);
+
   pinces.actuate();
   elevator.actuate(dt);
   barillet.actuate(dt);
-  comm.actuate();
+  communication.update();
 
-
+  /*
   //Communication
   if (tirette.isJustPressed())
   {
@@ -213,7 +209,7 @@ void Mega::actuate()
               pompeD.suck();
               pompeG.suck();
               elevator.aim = AIMTakeOnFloor;
-              if (elevator.goodenough() ) // and AmperemetrePompeDroit.getState()==Alerte and AmperemetrePompeGauche.getState()==Alerte){
+              if (elevator.goodenough() ) 
               {
                 etapeChaos = RemontePalet;
               }
@@ -638,7 +634,7 @@ void Mega::actuate()
           //    Serial.print("Palet Droite raw ");Serial.print(sharpPaletD.raw());Serial.print("\t");
           //    Serial.print("amp pompe Gauche ");pompeG.isSucked();Serial.print("\t");
           //    Serial.print("amp pompe Droite ");pompeD.isSucked();Serial.println("\t");
-
+      */
       }
 
 
@@ -656,23 +652,19 @@ void Mega::init()
   doigtGauche = MegaServo(DOIGT_GAUCHE_PIN, DOIGT_GAUCHE_RETRACTED, DOIGT_GAUCHE_HALF_RETRACTED, DOIGT_GAUCHE_HALF_EXTENDED, DOIGT_GAUCHE_EXTENDED);
   doigtDroit = MegaServo(DOIGT_DROIT_PIN, DOIGT_DROIT_RETRACTED, DOIGT_DROIT_HALF_RETRACTED, DOIGT_DROIT_HALF_EXTENDED, DOIGT_DROIT_EXTENDED);
   pinces = Pinces(true);
-  sharpARD = Sharp(SHARP_ARD_PIN, SHARP_ANTICOL_AR_SEUIL, SHARP_ANTICOL_AR_SEUIL / 2.0);
-  sharpARG = Sharp(SHARP_ARG_PIN, SHARP_ANTICOL_AR_SEUIL, SHARP_ANTICOL_AR_SEUIL / 2.0);
-  sharpAVD = Sharp(SHARP_AVD_PIN, SHARP_ANTICOL_AV_SEUIL_ALERT, SHARP_ANTICOL_AV_SEUIL_PROXIMITY);
-  sharpAVG = Sharp(SHARP_AVG_PIN, SHARP_ANTICOL_AV_SEUIL_ALERT, SHARP_ANTICOL_AV_SEUIL_PROXIMITY);
+  
   sharpPaletD = Sharp(SHARP_PALET_DROITE_PIN, 4242, SHARP_PALET_SEUIL);
   sharpPaletG = Sharp(SHARP_PALET_GAUCHE_PIN, 4242, SHARP_PALET_SEUIL);
-  AmperemetrePompeDroit = Sharp(AMPEREMETRE_POMPE_Droit_PIN, AMPEREMETRE_POMPE_Droit_SEUIL_DETECTED, AMPEREMETRE_POMPE_Droit_SEUIL_PROXIMITY);
-  AmperemetrePompeGauche = Sharp(AMPEREMETRE_POMPE_Gauche_PIN, AMPEREMETRE_POMPE_Gauche_SEUIL_DETECTED, AMPEREMETRE_POMPE_Gauche_SEUIL_PROXIMITY);
+  
   pompeG = Pompe(POMPE_GAUCHE_PIN_MOTEUR_PWR, POMPE_GAUCHE_PIN_MOTEUR_SENS, POMPE_GAUCHE_PIN_MOTEUR_BRAKE, POMPE_GAUCHE_PIN_AMP, true);
   pompeD = Pompe(POMPE_DROITE_PIN_MOTEUR_PWR, POMPE_DROITE_PIN_MOTEUR_SENS, POMPE_DROITE_PIN_MOTEUR_BRAKE, POMPE_DROITE_PIN_AMP, false);
   tirette = Contacteur(PIN_TIRETTE);
-  comm = Comm();
+  communication = Communication();
   elevator.init();
 #ifdef STATE
   Serial.println("Fin de la contaction de l'elevator. On remonte");
 #endif // STATE
-  while (abs(elevator.codeuseElevator->pos - elevator.aim) > 0.005 || abs(elevator.codeuseElevator->dPos) > 0.005)
+  while (abs(elevator.pos - elevator.aim) > 0.005 || abs(elevator.dPos) > 0.005)
   {
     actuate();
     delay(1);
@@ -691,7 +683,7 @@ void Mega::init()
     actuate();
     delay(1);
   }
-  barillet.codeuseBarillet->reset();
+  barillet.pos = 0;
   barillet.goTo(0.0);
 
 #ifdef STATE

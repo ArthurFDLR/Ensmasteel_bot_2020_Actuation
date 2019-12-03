@@ -17,6 +17,7 @@ class Elevator
 	  Contacteur *contacteurElevator;
 	  Codeuse *codeuseElevator;
 	  PID *pidElevator;
+	  float pos,dPos;
 
 
 

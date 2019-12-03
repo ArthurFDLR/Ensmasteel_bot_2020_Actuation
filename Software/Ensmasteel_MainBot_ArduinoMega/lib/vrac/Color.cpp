@@ -1,4 +1,5 @@
 #include "Color.h"
+#include "Arduino.h"
 
 Color::Color()
 {
@@ -7,8 +8,8 @@ Color::Color()
 
 Color::Color(bool dummy)
 {
-    sensor= Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_1X);
-    sensor.begin();
+    //sensor= Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_2_4MS, TCS34725_GAIN_1X);
+    //sensor.begin();
     tLastUpdate=millis()/1000.0;
 }
 
@@ -16,7 +17,7 @@ void Color::actuate()
 {
     if (millis()/1000.0-tLastUpdate>0.1)
     {
-        sensor.getRGB(&red, &green, &blue);
+        //sensor.getRGB(&red, &green, &blue);
     }
 }
 

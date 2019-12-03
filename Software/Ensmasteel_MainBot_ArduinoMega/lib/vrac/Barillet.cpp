@@ -12,54 +12,10 @@ float normalizeBarillet(float theta)
     return out;
 }
 
-//Cellule::Cellule(PaletE bas, PaletE millieu, PaletE haut, PaletE highPriority, PaletE midPriority, PaletE lowPriority, float angleDroite, float angleGauche)
-//{
-//    stock[BAS]=bas;
-//    stock[MILLIEU]=millieu;
-//    stock[HAUT]=haut;
-//    priorityIn[LOWPRIORITY]=lowPriority;
-//    priorityIn[MIDPRIORITY]=midPriority;
-//    priorityIn[HIGHPRIORITY]=highPriority;
-//    nbPaletIn=(stock[BAS]==VIDE)?(0):(1) + (stock[MILLIEU]==VIDE)?(0):(1) + (stock[HAUT]==VIDE)?(0):(1);
-//    this->angleDroite=angleDroite;
-//    this->angleGauche=angleGauche;
-//}
-//
-//Cellule::Cellule()
-//{
-//
-//}
-
-//void Cellule::add(PaletE palet)
-//{
-//    nbPaletIn++;
-//    if (stock[BAS]==VIDE)
-//        stock[BAS]=palet;
-//    else if(stock[MILLIEU]==VIDE)
-//        stock[MILLIEU]=palet;
-//    else if(stock[HAUT]==VIDE)
-//        stock[HAUT]=palet;
-//    else
-//        Serial.print("Remplir une cellule pleine ? For real mate ?");
-//}
-
-//void Cellule::take()
-//{
-//    nbPaletIn--;
-//    if (stock[HAUT]!=VIDE)
-//        stock[HAUT]=VIDE;
-//    else if(stock[MILLIEU]!=VIDE)
-//        stock[MILLIEU]=VIDE;
-//    else if(stock[BAS]!=VIDE)
-//        stock[BAS]=VIDE;
-//    else
-//        Serial.print("Vider une cellule vide ? For real mate ?");
-//}
-
 
 Barillet::Barillet(uint8_t pinContacteur,uint8_t pin1Codeuse,uint8_t pin2Codeuse,float tickToPos,uint8_t pinMoteurPwr,uint8_t pinMoteurSens,uint8_t pinMoteurBrake,bool coteviolet,Mega* ptrMega)
 {
-  pidBarillet=new PID(true,700.0,0,75.0,100,0);
+  pidBarillet=new PID(true,10);
   moteurBarillet=new Motor(pinMoteurPwr,pinMoteurSens,pinMoteurBrake);
   codeuseBarillet=new Codeuse(true,pin1Codeuse,pin2Codeuse,tickToPos);
   contacteurBarillet=new Contacteur(pinContacteur);
@@ -69,6 +25,8 @@ Barillet::Barillet(uint8_t pinContacteur,uint8_t pin1Codeuse,uint8_t pin2Codeuse
   accBarillet=ACCBARILLETSTD;
   aim=0.0;
   dAim=0.0;
+  pos=0;
+  dPos=0;
 }
 
 void Barillet::actuate(float dt)
@@ -76,15 +34,11 @@ void Barillet::actuate(float dt)
   if (dt>1){
     dt=0.01;
   }
-//  Serial.print("millis ");Serial.print(millis());
-//  Serial.print("la target est : ");Serial.print(target);
-//  Serial.print("l'aim est : ");Serial.print(aim);
-//  Serial.print("la position est :");Serial.println(codeuseBarillet->pos);
+
   color->actuate();
-  //color->raw();
-  //Serial.print("Color (R,B,V,Vide) ");Serial.println(color->getPaletCouleur());
-  //Serial.print("pos barillet ");Serial.println(codeuseBarillet->pos);
-  //Serial.print("Aim ");Serial.print(aim);Serial.print("\t target ");Serial.print(target);Serial.print("\t pos ");Serial.println(codeuseBarillet->pos);
+  dPos = codeuseBarillet->v;
+  pos += codeuseBarillet->deltaAvance;
+
   if (millis()/1000.0<tInversion)
   {
     dAim+=accBarillet*dt;
@@ -101,7 +55,7 @@ void Barillet::actuate(float dt)
       aim=target;
   }
   codeuseBarillet->actuate(dt);
-  moteurBarillet->order=pidBarillet->compute(dt,aim,codeuseBarillet->pos,codeuseBarillet->dPos)*0.85;
+  moteurBarillet->order=pidBarillet->compute(aim,dAim,pos,dPos,dt)*0.85;
   moteurBarillet->actuate();
 
 }
@@ -125,7 +79,8 @@ bool Barillet::init()
 
   moteurBarillet->order=0;// On arrete le barillet
   moteurBarillet->actuate();
-  codeuseBarillet->reset(); // On initialise la position
+  pos = 0;
+  dPos = 0;
   pidBarillet->reset();
   goTo(0.0);
 
@@ -154,17 +109,17 @@ bool Barillet::init()
 void Barillet::goTo(float angle)
 {
     angle=normalizeBarillet(angle);
-    angle=normalizeBarillet(codeuseBarillet->pos + normalizeBarillet(angle - codeuseBarillet->pos));
+    angle=normalizeBarillet(pos + normalizeBarillet(angle - pos));
      if(angle!=target)
     {
-      if (normalizeBarillet(angle-codeuseBarillet->pos)>0)
+      if (normalizeBarillet(angle-pos)>0)
         accBarillet=ACCBARILLETSTD;
       else
         accBarillet=-ACCBARILLETSTD;
-      this->aim=codeuseBarillet->pos;
+      this->aim=pos;
       this->dAim=0.0;
       tStartGoto=millis()/1000.0;
-      tFinGoto=tStartGoto + sqrt(abs(4.0*normalizeBarillet(angle-codeuseBarillet->pos))/ACCBARILLETSTD);
+      tFinGoto=tStartGoto + sqrt(abs(4.0*normalizeBarillet(angle-pos))/ACCBARILLETSTD);
       tInversion=(tFinGoto+tStartGoto)/2.0;
       target=angle;
     }
@@ -175,14 +130,14 @@ void Barillet::goToDelta(float angle)
       angle=normalizeBarillet(normalizeBarillet(angle)+normalizeBarillet(target));
     if (angle!=target)
     {
-      if (normalizeBarillet(angle-codeuseBarillet->pos)>0)
+      if (normalizeBarillet(angle-pos)>0)
         accBarillet=ACCBARILLETSTD;
       else
         accBarillet=-ACCBARILLETSTD;
-      this->aim=codeuseBarillet->pos;
+      this->aim=pos;
       this->dAim=0.0;
       tStartGoto=millis()/1000.0;
-      tFinGoto=tStartGoto + sqrt(abs(4.0*(normalizeBarillet(angle-codeuseBarillet->pos))/ACCBARILLETSTD));
+      tFinGoto=tStartGoto + sqrt(abs(4.0*(normalizeBarillet(angle-pos))/ACCBARILLETSTD));
       tInversion=(tFinGoto+tStartGoto)/2.0;
       target=angle;
     }
@@ -192,7 +147,7 @@ void Barillet::goToDelta(float angle)
 
 bool Barillet::goodenough()
 {
-    return (abs(normalizeBarillet(target - codeuseBarillet->pos))<0.02 && codeuseBarillet->dPos<0.02);
+    return (abs(normalizeBarillet(target - pos))<0.02 && dPos<0.02);
 }
 
 
@@ -235,7 +190,7 @@ bool Barillet::RedefinitionPosBleuium(){
           ptrMega->actuate();
         }
     }
-    codeuseBarillet->reset(); // maitenant le palet est du bon coté et à la bonne position
+    pos=0;
     pidBarillet->reset();
     goTo(0.0);
   }

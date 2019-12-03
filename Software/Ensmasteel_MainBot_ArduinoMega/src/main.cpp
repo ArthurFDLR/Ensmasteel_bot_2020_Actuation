@@ -2,6 +2,7 @@
 #include "StateMachine.h"
 #include "Logger.h"
 #include "Communication.h"
+#include "Mega.h"
 
 StateMachine sm;
 Communication com;

@@ -58,21 +58,7 @@
 #define SHARP_PALET_DROITE_PIN          A2
 #define SHARP_PALET_SEUIL               300
 
-#define SHARP_AVG_PIN                   A4
-#define SHARP_AVD_PIN                   A6
-#define SHARP_ARG_PIN                   A8
-#define SHARP_ARD_PIN                   A3
-#define SHARP_ANTICOL_AR_SEUIL          550
-#define SHARP_ANTICOL_AV_SEUIL_PROXIMITY     200
-#define SHARP_ANTICOL_AV_SEUIL_ALERT    270
 
-#define AMPEREMETRE_POMPE_Droit_PIN         A0
-#define AMPEREMETRE_POMPE_Droit_SEUIL_DETECTED   540.
-#define AMPEREMETRE_POMPE_Droit_SEUIL_PROXIMITY     500.//osef
-
-#define AMPEREMETRE_POMPE_Gauche_PIN        A1
-#define AMPEREMETRE_POMPE_Gauche_SEUIL_DETECTED   530.//563
-#define AMPEREMETRE_POMPE_Gauche_SEUIL_PROXIMITY     500.//osef
 
 #define PIN_TIRETTE 27
 
